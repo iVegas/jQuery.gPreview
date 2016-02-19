@@ -1,0 +1,75 @@
+html, body {
+    width: 100%;
+    height: 100%;
+}
+
+.list {
+    display: inline-block;
+    width: 100%;
+}
+
+.list .item {
+    float: left;
+    position: relative;
+    width: 24.5%;
+    height: 300px;
+    background-color: #ff8487;
+    border: 1px solid black;
+}
+
+.list .item.gpreview-last {
+    /*background-color: #f5ff48;*/
+}
+
+.list .item:nth-child(2n) {
+    /*height: 400px;*/
+    background-color: #ffc461;
+}
+
+.list .item.gpreview-block {
+    width: 100%;
+
+}
+.list .item.gpreview.process {
+    background-color: #ccffcc;
+}
+
+.list .item.gpreview-current:after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translate(-50%, -100%);
+    width: 0;
+    height: 0;
+    border-left: 15px solid transparent;
+    border-right: 15px solid transparent;
+    border-top: 15px solid #2f2f2f;
+    font-size: 0;
+    line-height: 0;
+}
+.list .item.gpreview{
+    width:100%;
+    background-color: #2B2B2B;
+}
+
+.list .item.gpreview {
+    vertical-align: middle;
+    align-content: center;
+}
+
+.gpreview .next, .gpreview .prev{
+    display: inline-block;
+    width: 25px;
+    height: 25px;
+    position: absolute;
+    top: 50%;
+    background-color: #163176;
+    border: 1px ;
+    transform: translateY(-50%);
+}
+
+.gpreview .next{
+    left: 100%;
+    transform: translateX(-100%);
+}
