@@ -6,6 +6,10 @@
 
     $.fn.gPreview = function (options, callback) {
 
+        if (!this.length){
+            return false;
+        }
+
         function sel(obj) {
             var r;
             r = obj.attr('id');
@@ -13,10 +17,9 @@
                 r =  '#' + r;
             }
             else {
-                r = obj.attr('class').split(' ').join('.');
+                r = (obj.attr('class')).split(' ').join('.');
                 r = r ? '.' + r : '';
                 r = (obj.attr("tagName") || obj.prop("tagName")) + r;
-
             }
             return r;
         }
@@ -38,9 +41,6 @@
             $gpreview,
             iterator,
             settings = $.extend({}, defaults, options);
-
-
-        console.log(wrapperClass);
 
         function c(classname) {
             return '.' + classname;
@@ -142,10 +142,9 @@
                 return true;
             }
             $lastElementInARow = positioningBlock($gcurrent);
-
+            processCalback(callback);
             if ($lastElementInARow) {
                 placeBlock($gpreview, $lastElementInARow);
-                processCalback(callback);
                 $('html, body').animate({scrollTop: $gcurrent.offset().top}, 200);
             }
         };
@@ -215,3 +214,4 @@
     };
 
 }(jQuery));
+
