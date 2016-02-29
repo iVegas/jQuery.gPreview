@@ -1,30 +1,13 @@
-/**
- * Created by voleger on 17.02.16.
- */
 (function ($) {
     'use strict';
 
     $.fn.gPreview = function (options, callback) {
-
-        if (!this.length){
+        if (!this.length) {
             return false;
         }
 
-        function sel(obj) {
-            var r;
-            r = obj.attr('id');
-            if (r) {
-                r =  '#' + r;
-            }
-            else {
-                r = (obj.attr('class')).split(' ').join('.');
-                r = r ? '.' + r : '';
-                r = (obj.attr("tagName") || obj.prop("tagName")) + r;
-            }
-            return r;
-        }
-
         var defaults = {
+                'wrapperClass': 'gpreviewWrapper',
                 'elementsClass': 'item',
                 'currentElementClass': 'gpreview-current',
                 'lastElementInARowClass': 'gpreview-last',
@@ -34,7 +17,6 @@
                 'navNextClass': 'next',
                 'navPrevClass': 'prev'
             },
-            wrapperClass = sel(this),
             elementsList = [],
             $lastElementInARow = false,
             $gcurrent,
@@ -42,17 +24,17 @@
             iterator,
             settings = $.extend({}, defaults, options);
 
-        function c(classname) {
-            return '.' + classname;
-        }
+        String.prototype.c = function () {
+            return '.' + this;
+        };
 
         function processCalback(cb) {
             $.when($gpreview.addClass(settings.processPreviewClass)).then(function () {
                 if (typeof cb === 'function') {
-                    cb($gcurrent, $gpreview.children(c(settings.previewContent)));
+                    cb($gcurrent, $gpreview.children(settings.previewContent.c()));
                 }
                 if (typeof cb === 'string') {
-                    $gpreview.children(c(settings.previewContent)).html(cb);
+                    $gpreview.children(settings.previewContent.c()).html(cb);
                 }
             }).then($gpreview.removeClass(settings.processPreviewClass));
 
@@ -66,8 +48,14 @@
             }
         }
 
+        function placeBlock($block, $after) {
+            $block.trigger('gpreview_moved_before');
+            $block.insertAfter($after);
+            $block.trigger('gpreview_moved_after');
+        }
+
         function createBlockPreview($lastInARow) {
-            var $currentBlock = $(wrapperClass + ' ' + c(settings.currentPreviewBlockClass));
+            var $currentBlock = $(settings.wrapperClass.c() + ' ' + settings.currentPreviewBlockClass.c());
             if (!$currentBlock.length) {
                 return $lastInARow
                     .clone()
@@ -103,36 +91,22 @@
         }
 
         function positioningBlock($current) {
+            var _lastElement = false;
             if ($current.hasClass(settings.currentElementClass)) {
                 $current.removeClass(settings.currentElementClass);
                 hideInMemoryBlock();
-                $lastElementInARow = false;
             }
             else {
-                var $prev = $(wrapperClass + ' ' + c(settings.currentElementClass));
-                $(wrapperClass + ' ' + c(settings.elementsClass)).removeClass(settings.currentElementClass);
+                var $prev = $(settings.wrapperClass.c() + ' ' + settings.currentElementClass.c());
+                $(settings.wrapperClass.c() + ' ' + settings.elementsClass.c()).removeClass(settings.currentElementClass);
                 $current.addClass(settings.currentElementClass);
                 // get last element i a row to know where we must render a block
-                $lastElementInARow = getLastItemInRow($current);
-                if ($prev.length) {
-                    var curr_center = $current.position().top + ( $current.height() / 2 );
-                    var prev_top = $prev.position().top;
-                    var prev_bot = prev_top + $prev.height();
-                    $lastElementInARow = !(curr_center >= prev_top && curr_center <= prev_bot) ? $lastElementInARow : false;
-                }
-                else {
-                    if (!$gpreview) {
-                        $gpreview = createBlockPreview($lastElementInARow);
-                    }
+                _lastElement = getLastItemInRow($current);
+                if (!$prev.length && !$gpreview) {
+                        $gpreview = createBlockPreview(_lastElement);
                 }
             }
-            return $lastElementInARow;
-        }
-
-        function placeBlock($block, $after) {
-            $block.trigger('gpreview_moved_before');
-            $block.insertAfter($after);
-            $block.trigger('gpreview_moved_after');
+            return _lastElement;
         }
 
         this.run = function (event) {
@@ -141,9 +115,10 @@
             if ($gcurrent.hasClass(settings.currentPreviewBlockClass) || !$gcurrent.hasClass(settings.elementsClass)) {
                 return true;
             }
-            $lastElementInARow = positioningBlock($gcurrent);
+            var _lastElementInARow = positioningBlock($gcurrent);
             processCalback(callback);
-            if ($lastElementInARow) {
+            if (!$lastElementInARow || !$lastElementInARow.is(_lastElementInARow) ) {
+                $lastElementInARow = _lastElementInARow;
                 placeBlock($gpreview, $lastElementInARow);
                 $('html, body').animate({scrollTop: $gcurrent.offset().top}, 200);
             }
@@ -152,13 +127,13 @@
         function detectLastItems() {
 
             if (!elementsList.length) {
-                elementsList = $(wrapperClass + ' ' + c(settings.elementsClass) + ':not(' + c(settings.currentPreviewBlockClass) + ')');
+                elementsList = $(settings.wrapperClass.c() + ' ' + settings.elementsClass.c() + ':not(' + settings.currentPreviewBlockClass.c() + ')');
                 iterator = 0;
                 // resize with active block fix.
                 hideInMemoryBlock();
             }
             if (!iterator) {
-                $(wrapperClass + ' ' + c(settings.elementsClass)).removeClass(settings.lastElementInARowClass);
+                $(settings.wrapperClass.c() + ' ' + settings.elementsClass.c()).removeClass(settings.lastElementInARowClass);
             }
             var $selector = $(elementsList[iterator]);
             var $lastInARow = $selector.next();
@@ -167,7 +142,7 @@
                 iterator = 0;
                 elementsList = [];
                 // resize with active block fix.
-                $gcurrent = $(wrapperClass + ' ' + c(settings.currentElementClass));
+                $gcurrent = $(settings.wrapperClass.c() + ' ' + settings.currentElementClass.c());
                 if ($gcurrent.length) {
                     $gcurrent.removeClass(settings.currentElementClass);
                     $lastElementInARow = positioningBlock($gcurrent);
@@ -186,7 +161,7 @@
         }
 
         this.prev = function () {
-            var p = $(wrapperClass + ' ' + c(settings.currentElementClass)).prev();
+            var p = $(settings.wrapperClass.c() + ' ' + settings.currentElementClass.c()).prev();
             if (p) {
                 $(p).trigger('click.gpreview');
                 return true;
@@ -194,7 +169,7 @@
             return false;
         };
         this.next = function () {
-            var n = $(wrapperClass + ' ' + c(settings.currentElementClass)).next();
+            var n = $(settings.wrapperClass.c() + ' ' + settings.currentElementClass.c()).next();
             if (n) {
                 if (n.hasClass(settings.currentPreviewBlockClass)) {
                     n = n.next();
@@ -205,9 +180,9 @@
             return false;
         };
 
-        this.on('click.gpreview', this.find(c(settings.elementsClass)), this.run);
-        $(document).on('click.gpreview', wrapperClass + ' ' + c(settings.navPrevClass), this.prev);
-        $(document).on('click.gpreview', wrapperClass + ' ' + c(settings.navNextClass), this.next);
+        this.on('click.gpreview', this.find(settings.elementsClass.c()), this.run);
+        $(document).on('click.gpreview', settings.wrapperClass.c() + ' ' + settings.navPrevClass.c(), this.prev);
+        $(document).on('click.gpreview', settings.wrapperClass.c() + ' ' + settings.navNextClass.c(), this.next);
         $(window).on('resizeend.gpreview', detectLastItems);
         $(window).trigger('resizeend.gpreview');
         return this;
